@@ -11,14 +11,45 @@ import pytz
 app = Flask(__name__)
 
 # ---------- Config ----------
+MODEL_FILE_ID = "1nkQknnE7oNd4q5J84qUa10kpAQAzZ_NG"  # Replace with actual Google Drive file ID
+ENCODER_FILE_ID = "17qbNzILSS-nwzc1FVKWkR4BckfcYmrDp"  # Replace with actual Google Drive file ID
 MODEL_PATH = "model/pujjeepModel.pkl"
 ENCODER_PATH = "model/encoders.pkl"
 DATA_PATH = "data/expandedDataset_with_JeepVolume.csv"
 # ----------------------------
 
+def download_models():
+    """Download model files from Google Drive if they don't exist"""
+    os.makedirs("model", exist_ok=True)
+    
+    if not os.path.exists(MODEL_PATH):
+        print("📥 Downloading model file from Google Drive...")
+        url = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+        print("✅ Model file downloaded successfully")
+    else:
+        print("✅ Model file already exists")
+    
+    if not os.path.exists(ENCODER_PATH):
+        print("📥 Downloading encoder file from Google Drive...")
+        url = f"https://drive.google.com/uc?id={ENCODER_FILE_ID}"
+        gdown.download(url, ENCODER_PATH, quiet=False)
+        print("✅ Encoder file downloaded successfully")
+    else:
+        print("✅ Encoder file already exists")
+
+# Download models on app startup
+print("🚀 Initializing application...")
+download_models()
+
+# Load model + encoder + stops
+print("📂 Loading model and data...")
+
 # Load model + encoder + stops
 model, encoder = load_model_and_encoders(MODEL_PATH, ENCODER_PATH)
 stops_df = pd.read_csv(DATA_PATH)[["Stop", "Latitude", "Longitude"]].drop_duplicates()
+
+print("✅ Application ready!")
 
 # ---------- FIXED Helper Function ----------
 def safe_transform(df, encoder):
